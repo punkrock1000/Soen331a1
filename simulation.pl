@@ -19,13 +19,21 @@
 %%
 %% =============================================================================
 
+state(idle).
+state(configurationMode).
+state(monitoring).
+state(heatingUp).
 
+%% transition(idle, configurationMode, configureSystem, fs == on, fs = furnaceState).
+transition(idle, monitoring,_,_,_).
+initial_state(idle,_).
 
 %% =============================================================================
 %%
 %%  Rules
 %%
 %% =============================================================================
-
+initial_state(X) :- initial_state(X, _).
+%% transition(Source, Destination, Event, Guard, Action).
 
 %% eof.
