@@ -26,17 +26,15 @@
   state(exit).
   
   initial_state(idle,_).
-  transition(idle,configurationMode,'Configure the system','fs == off').
+  transition(idle,configurationMode,'Configure the system','furnateState == off').
   transition(configurationMode,idle,'cancelling',_).
   transition(configurationMode,idle,'completing',_).
   transition(configurationMode,idle,'inactive(1 minute)',_).
   transition(idle,monitoring,_,_).
-  transition(monitoring,'heating up','every 2 min','currentRoomTemp<(desiredTemp-1)').
-  transition(monitoring,'every 2 min','currentRoomTemp=>desiredTemp',null).
-  transition(heatingUp,monitoring,'every 3 min','furnaceTemp=(desiredTemp+1)').
-  transition(heatingUp, heatingUp,'every 3 min','furnaceTemp<(desiredTemp+1)').
-  transition(heatingUp,'idle mode','cancel current mode',null).
-  transition(heatingUp,'idle mode','completion configulattion',null).
+  transition(monitoring,monitoring,'after(2 minutes)','currentRoomTemp >= desiredTemp').
+  transition(monitoring,heatingUp,'after(2 minutes)','currentRoomTemp < (desiredTemp-1)').
+  transition(heatingUp,heatingUp,'after(3 minutes)','furnaceTemp < (desiredTemp+1)').
+  transition(heatingUp,idle,'after(3 minutes)','furnaceTemp >= (desiredTemp+1)').
   transition(idle,exit,'shut off',_).
   
 %% =============================================================================
