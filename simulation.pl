@@ -18,6 +18,14 @@
 %%  Facts
 %%
 %% =============================================================================
+  state(idle).
+  state(monitoring).
+  state('heating up').
+  state(shutoff).
+  state(configuration).
+  initial_state(idle,null).
+  super_state(monitoring,'idle').
+  super_state(monitoring,configuration).
 
 state(idle).
 state(configurationMode).
@@ -27,13 +35,28 @@ state(heatingUp).
 %% transition(idle, configurationMode, configureSystem, fs == on, fs = furnaceState).
 transition(idle, monitoring,_,_,_).
 initial_state(idle,_).
-
 %% =============================================================================
 %%
 %%  Rules
 %%
 %% =============================================================================
-initial_state(X) :- initial_state(X, _).
-%% transition(Source, Destination, Event, Guard, Action).
+  transition(idle,shutoff,'shut off',null).
+  transition(idle,monitoring,null,null).
+  transition(monitoring,'heating up','every 2 min','currentRoomTemp<(desiredTemp-1)').
+  transition(monitoring,'every 2 min','currentRoomTemp=>desiredTemp',null).
+  transition('heating up',monitoring,'every 3 min','furnaceTemp=(desiredTemp+1)').
+  transition('heating up','heating up','every 3 min','furnaceTemp<(desiredTemp+1)').
+  transition('heating up','idle mode','cancel current mode',null).
+  transition('heating up','idle mode','completion configulattion',null).
+  
+  ancestor(S):- state(Y), super_state(S,Y).
+
+  get_all_transition(TSet):-
+         findall(transition(S,D,E,G),transition(S,D,E,G),TList),
+         list_to_set(TList,TSet),((E\==null),(G\==null)) .
+
+  get_inherited_transitions(ISet,S):-
+         findall(transition(S,D,E,G),transition(S,D,E,G),IList),
+         list_to_set(IList,ISet).
 
 %% eof.
