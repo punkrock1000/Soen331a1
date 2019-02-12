@@ -25,19 +25,24 @@
   state(heatingUp).
   state(exit).
   
-  initial_state(idle,_).
-  transition(idle,configurationMode,'configuring',_).
-  transition(configurationMode,configurationMode,'set or override triplets',_).
-  transition(configurationMode,idle,'cancelling',_).
-  transition(configurationMode,idle,'completion of user entries',_).
-  transition(configurationMode,idle,'inactive(1 minute)',_).
-  transition(idle,monitoring,'start monitoring',_).
+  initial_state(idle,null).
+  transition(idle,configurationMode,'configuring',null).
+  transition(configurationMode,configurationMode,'set or override triplets',null).
+  transition(configurationMode,idle,'cancelling',null).
+  transition(configurationMode,idle,'completion of user entries',null).
+  transition(configurationMode,idle,'inactive(1 minute)',null).
+  transition(idle,monitoring,'start monitoring',null).
   transition(monitoring,monitoring,'after(2 minutes)','currentRoomTemp >= desiredTemp').
   transition(monitoring,heatingUp,'after(2 minutes)','currentRoomTemp < (desiredTemp-1)').
   transition(heatingUp,heatingUp,'after(3 minutes)','furnaceTemp < (desiredTemp+1)').
   transition(heatingUp,idle,'after(3 minutes)','furnaceTemp >= (desiredTemp+1)').
-  transition(heatingUp,configurationMode,'interrupt heating',_).
-  transition(idle,exit,'shut off',_).
+  transition(heatingUp,configurationMode,'interrupt heating',null).
+  transition(idle,exit,'shut off',null).
+  
+  parent(idle, configurationMode).
+  parent(configurationMode, monitoring).
+  parent(monitoring, heatingUp).
+  parent(heatingUp, exit).
   
 %% =============================================================================
 %%
@@ -45,13 +50,21 @@
 %%
 %% =============================================================================
   
-
+%% Return whether or not both the Event and Guard variables of the transition are null (empty).
+  transition_has_event_and_guard(S,D,E,G) :-
+		 transition(S,D,E,G),
+		 E \= null,
+		 G \= null.
   
-  ancestor(S):- state(Y), super_state(S,Y).
-
+  ancestor(X, Y):- 
+		 parent(X, Y).
+  ancestor(X, Y):- 
+		 parent(X, Z), 
+		 ancestor(Z, Y).
+  
   get_all_transition(TSet):-
-         findall(transition(S,D,E,G),transition(S,D,E,G),TList),
-         list_to_set(TList,TSet),((E\==null),(G\==null)) .
+         findall(transition_has_event_and_guard(S,D,E,G),transition_has_event_and_guard(S,D,E,G),TList),
+         list_to_set(TList,TSet).
 
   get_inherited_transitions(ISet,S):-
          findall(transition(S,D,E,G),transition(S,D,E,G),IList),
