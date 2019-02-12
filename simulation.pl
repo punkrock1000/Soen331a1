@@ -27,6 +27,7 @@
   
   initial_state(idle,_).
   transition(idle,configurationMode,'configuring',_).
+  transition(configurationMode,configurationMode,'set or override triplets',_).
   transition(configurationMode,idle,'cancelling',_).
   transition(configurationMode,idle,'completion of user entries',_).
   transition(configurationMode,idle,'inactive(1 minute)',_).
